@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.pem
+*.key
+.oci/
+uploads/
+downloads/
+logs/
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+runtime/
+*.bak
