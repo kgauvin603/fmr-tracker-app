@@ -28,7 +28,9 @@ if ! git remote get-url origin >/dev/null 2>&1; then
 fi
 
 echo "Ensuring GitHub repo visibility is public..."
-gh repo edit "${GITHUB_USER}/${REPO_NAME}" --visibility public
+gh repo edit "${GITHUB_USER}/${REPO_NAME}" \
+  --visibility public \
+  --accept-visibility-change-consequences
 
 echo "Pushing to origin/${BRANCH}..."
 git push -u origin "${BRANCH}"
