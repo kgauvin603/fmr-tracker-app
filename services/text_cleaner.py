@@ -157,8 +157,37 @@ def split_into_blocks(raw_text: str, **kwargs) -> List[Dict[str, str]]:
     Split raw email thread into sender-tagged blocks.
     kwargs accepted but ignored — previously accepted client/model for LLM
     cleaning which has been removed to reduce API costs.
+
+    Handles three common reply formats:
+      1. "From: ..." header lines (Outlook-style)
+      2. "-----Original Message-----" separators
+      3. "On <date>, <name> <email> wrote:" (Gmail/Apple Mail-style)
     """
     text = unicodedata.normalize("NFKD", raw_text)
+
+    # Normalise "-----Original Message-----" into a synthetic "From:" boundary
+    # so the main splitter can handle it uniformly.
+    text = re.sub(
+        r"-{3,}\s*Original Message\s*-{3,}",
+        "\nFrom: ",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    # Normalise "On <date>, <name> wrote:\n>" into a From-style boundary.
+    # Capture the sender name/email so we can classify it.
+    def _on_wrote_to_from(m: re.Match) -> str:
+        sender = (m.group("email") or m.group("name") or "").strip()
+        return f"\nFrom: {sender}\n"
+
+    text = re.sub(
+        r"On\s+.{5,80}?,\s+(?P<name>[^<\n]{2,60}?)"
+        r"(?:\s+<(?P<email>[^>]+)>)?\s+wrote\s*:\s*\n",
+        _on_wrote_to_from,
+        text,
+        flags=re.IGNORECASE,
+    )
+
     block_pattern = re.compile(r"^(?:>*\s*)(?=from\s*:)", re.IGNORECASE | re.MULTILINE)
     raw_blocks = [b.strip() for b in block_pattern.split(text) if b.strip()]
 
@@ -175,6 +204,6 @@ def split_into_blocks(raw_text: str, **kwargs) -> List[Dict[str, str]]:
         cleaned   = clean_block(block)
 
         if cleaned:
-            blocks.append({"role": role, "subject": subject, "date": date, "text": cleaned})
+            blocks.append({"role": role, "subject": subject, "date": date, "from": from_line, "text": cleaned})
 
     return blocks

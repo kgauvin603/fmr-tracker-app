@@ -84,7 +84,7 @@ class WorkbookService:
                 self._write_row_values(ws, row_num, item.get("row_values", {}))
 
         timestamp   = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = Path(output_dir) / f"Fidelity_FMR_Technical_Session_Tracker_UPDATED_{timestamp}.xlsx"
+        output_path = Path(output_dir) / f"{self.workbook_path.stem}_UPDATED_{timestamp}.xlsx"
         out_wb.save(output_path)
         return str(output_path)
 

@@ -72,25 +72,45 @@ Text is pre-cleaned. Ignore remaining greetings/sign-offs.
 
 Return ONE JSON with qa_pairs and recommendations.
 
+ASSIGNMENT PRIORITY — when choosing Owner / Contact / Responsibility Owner:
+  1. Name explicitly mentioned in the email near this topic → use that name.
+  2. assignment_history (if provided) → find the person who has most frequently owned
+     the same sheet + similar topic in past rows. Prefer the person with the most matches.
+  3. roles_context (if provided) → infer the best-fit Oracle team member by role/topic.
+  4. Leave "" only if all three steps yield nothing.
+
 QA_PAIRS — one per distinct question:
 - Merge duplicates (same Q in multiple blocks = one pair)
 - question: question text only | answer: answer text only, no URLs
 - oracle_doc_link: oracle.com URL from answer or "" | other_doc_link: non-oracle URL or "" (never both)
-- responsibility_owner: assigned person/team or "" | next_step: action item or ""
+- responsibility_owner: follow ASSIGNMENT PRIORITY above for Q&A sheet.
+- next_step: action item or ""
 - comment: noteworthy context not in answer, or ""
 - cloud_provider: "AWS" only if the question is specifically about AWS infrastructure/behavior, "Azure" only if Azure-specific, otherwise "Oracle". Do NOT set AWS just because the product is called ODB@AWS — set Oracle if the question is about Oracle functionality running on AWS.
 - Skip confirmed-SR content (goes to recommendations) and workshop/training requests (goes to recommendations)
 
 RECOMMENDATIONS — ODB@AWS, ODB@Azure, Enablement only (NOT Q&A):
-- Confirmed active SR → ODB@AWS (Azure-specific → ODB@Azure)
+- All SRs and issues go to ODB@AWS by default.
+- Use ODB@Azure ONLY when the text explicitly says "Oracle Database@Azure", "ODB@Azure", or "Azure-specific" AND the issue is about Azure infrastructure itself — not merely an ODB@AWS issue that happens to mention Azure elsewhere. When in doubt, use ODB@AWS.
 - Conditional SR ("will open if needed") → skip
 - Workshop/deep dive/training → Enablement, ONE ROW PER TOPIC
 - Status: Not Resolved|Partially Resolved|Resolved | Priority: Low|Medium|High | Type: Technical Issue|Enhancement
-- Enablement fields: On-Site Date (find date near topic or use first_communicated_date), Requester (who asked), Follow Up Enablement Topics (concise title), Owner, Status (always ""), Scheduled Date, Business Units Invloved, Internal SR#, Customer SR#
+- Enablement Owner/Requester logic (apply per topic):
+  STEP 1: Find any name mentioned in the body near this topic.
+  STEP 2: Check that name against the Oracle Team list in roles_context.
+    → If the name IS on the Oracle Team → put it in Owner, leave Requester "".
+    → If the name is NOT on the Oracle Team → put it in Requester, leave Owner to step 3.
+  STEP 3: Owner still empty → check assignment_history for who most often owns Enablement rows
+     with a similar topic. If a clear pattern exists, use that person. Otherwise use roles_context.
+- ODB@AWS / ODB@Azure Contact: follow ASSIGNMENT PRIORITY above.
+- Enablement fields: On-Site Date (find date near topic or use first_communicated_date), Requester (see logic above), Follow Up Enablement Topics (concise title), Owner (see logic above — always populate), Status (always ""), Scheduled Date, Business Units Invloved, Internal SR#, Customer SR#
 
 Return JSON:
 {"qa_pairs":[{"question":"","answer":"","oracle_doc_link":"","other_doc_link":"","responsibility_owner":"","next_step":"","comment":"","cloud_provider":"Oracle|AWS|Azure"}],
-"recommendations":[{"target_sheet":"ODB@AWS","summary":"","confidence":"high|medium|low","reason":"","row_values":{"Date":"","Issue":"","Status":"","Priority":"","Oracle Tracking Request":"","Type":"","Product":"","Contact":"","Description":"","Fidelity Comments":"","Oracle Progress/Comments":""},"source_excerpt":""}]}
+"recommendations":[
+  {"target_sheet":"ODB@AWS","summary":"","confidence":"high|medium|low","reason":"","row_values":{"Date":"","Issue":"","Status":"","Priority":"","Oracle Tracking Request":"","Type":"","Product":"","Contact":"","Description":"","Fidelity Comments":"","Oracle Progress/Comments":""},"source_excerpt":""},
+  {"target_sheet":"Enablement","summary":"","confidence":"high|medium|low","reason":"","row_values":{"On-Site Date":"","Requester":"<Fidelity person who requested the session>","Follow Up Enablement Topics":"","Owner":"","Status":"","Scheduled Date":"","Business Units Invloved":"","Internal SR#":"","Customer SR#":""},"source_excerpt":""}
+]}
 """.strip()
 
 MATCH_PROMPT = """
@@ -105,11 +125,12 @@ Return only changed fields for matches. Omit no-match and no-change items.
 # ---------------------------------------------------------------------------
 
 class UpdateRecommender:
-    def __init__(self, model_name: str, enabled: bool = True, api_key: str = None):
-        self.model_name = model_name
-        self.enabled    = enabled
-        self.api_key    = api_key
-        self._client    = None
+    def __init__(self, model_name: str, enabled: bool = True, api_key: str = None, roles_context: str = ""):
+        self.model_name    = model_name
+        self.enabled       = enabled
+        self.api_key       = api_key
+        self.roles_context = roles_context
+        self._client       = None
 
     @property
     def client(self) -> OpenAI:
@@ -125,7 +146,7 @@ class UpdateRecommender:
             email_subject = next((b["subject"] for b in blocks if b.get("subject")), "")
             first_date    = next(iter(sorted(b["date"] for b in blocks if b.get("date"))), "")
 
-            payload   = self._combined_extract(blocks, first_date)
+            payload   = self._combined_extract(blocks, first_date, workbook_context)
             qa_rows   = [self._qa_row_from_pair(p, email_subject, first_date)
                          for p in self._merge_duplicate_pairs(payload.get("qa_pairs", []))]
             non_qa    = self._normalize_results(payload.get("recommendations", []), first_date)
@@ -145,19 +166,73 @@ class UpdateRecommender:
     # LLM Call 1: combined extraction
     # ------------------------------------------------------------------
 
-    def _combined_extract(self, blocks: List[Dict], first_date: str) -> Dict:
+    def _build_assignment_history(self, workbook_context: Dict) -> str:
+        """Summarise past owner/contact assignments per sheet so the LLM can learn from them."""
+        from collections import defaultdict
+
+        owner_fields = {
+            "Q&A":       "Responsibility Owner",
+            "ODB@AWS":   "Contact",
+            "ODB@Azure": "Contact",
+            "Enablement": "Owner",
+        }
+        topic_fields = {
+            "Q&A":       "Question Topics",
+            "ODB@AWS":   "Issue",
+            "ODB@Azure": "Issue",
+            "Enablement": "Follow Up Enablement Topics",
+        }
+
+        history: Dict[str, Dict[str, list]] = defaultdict(lambda: defaultdict(list))
+        for sheet, rows in workbook_context.get("all_rows", {}).items():
+            owner_col = owner_fields.get(sheet)
+            topic_col = topic_fields.get(sheet)
+            if not owner_col:
+                continue
+            for row in rows:
+                person = (row.get(owner_col) or "").strip()
+                if not person:
+                    continue
+                topic = (row.get(topic_col) or "")[:80].strip()
+                history[person][sheet].append(topic)
+
+        if not history:
+            return ""
+
+        lines = ["Past assignment patterns (priority 2 — use before roles_context):"]
+        for person, sheets in sorted(history.items()):
+            parts = []
+            for sheet, topics in sheets.items():
+                sample = "; ".join(t for t in topics[:3] if t)
+                count  = len(topics)
+                parts.append(
+                    f"{sheet} ({count} row{'s' if count != 1 else ''}"
+                    + (f", e.g. {sample[:70]}" if sample else "") + ")"
+                )
+            lines.append(f"  {person}: {', '.join(parts)}")
+        return "\n".join(lines)
+
+    def _combined_extract(self, blocks: List[Dict], first_date: str, workbook_context: Dict = None) -> Dict:
         formatted = "\n\n".join(
             f"[Block {i+1} — {b['role'].upper()}]\n{b['text']}"
             for i, b in enumerate(blocks) if b["text"]
         )
+        payload = {
+            "email_blocks": formatted[:28000],
+            "first_communicated_date": first_date,
+        }
+        if workbook_context:
+            history = self._build_assignment_history(workbook_context)
+            if history:
+                payload["assignment_history"] = history
+        if self.roles_context:
+            payload["roles_context"] = self.roles_context
+
         resp = self.client.chat.completions.create(
             model=self.model_name,
             messages=[
                 {"role": "system", "content": COMBINED_PROMPT},
-                {"role": "user",   "content": json.dumps({
-                    "email_blocks": formatted[:28000],
-                    "first_communicated_date": first_date,
-                }, default=str)},
+                {"role": "user",   "content": json.dumps(payload, default=str)},
             ],
             response_format={"type": "json_object"},
         )
@@ -218,7 +293,7 @@ class UpdateRecommender:
                 if k not in skip and v and _norm(str(v)) != _norm(str(ex_vals.get(k) or ""))}
 
     def _fuzzy_match_with_llm(self, items_to_match: List[Tuple], existing: List[Dict]) -> List[Dict]:
-        text_existing = [r for r in existing if not r["sr"]][:80]
+        text_existing = existing[:200]
         if not text_existing:
             return [{**rec, "type": "addition"} for _, rec in items_to_match]
 
@@ -316,7 +391,7 @@ class UpdateRecommender:
             "reason": "Extracted from email thread.",
             "row_values": {
                 "Date":                              _format_date(first_date),
-                "Question Topics":                   email_subject or self._summary_from_chunk(question)[:120],
+                "Question Topics":                   self._summary_from_chunk(question)[:120] or email_subject,
                 "Use Case Clarification":            question[:1200],
                 "Possible Workaround or Recommendation": answer_clean[:1200],
                 "Oracle Documentation Link":         oracle_link,
@@ -334,15 +409,23 @@ class UpdateRecommender:
     # Normalization
     # ------------------------------------------------------------------
 
+    def _resolve_sheet(self, item: Dict) -> str:
+        """Return the target sheet, demoting ODB@Azure to ODB@AWS unless explicitly Azure."""
+        sheet   = item.get("target_sheet") or "ODB@AWS"
+        excerpt = (item.get("source_excerpt") or "") + " " + str(item.get("row_values", {}))
+        if sheet == "ODB@Azure" and self._extract_cloud_provider(excerpt) != "Azure":
+            return "ODB@AWS"
+        return sheet
+
     def _normalize_results(self, recommendations: List[Dict], first_date: str = "") -> List[Dict]:
         return [{
             "id": str(uuid.uuid4()), "type": "addition",
-            "target_sheet": item.get("target_sheet") or "ODB@AWS",
+            "target_sheet": self._resolve_sheet(item),
             "summary":      item.get("summary", "Recommended addition"),
             "confidence":   item.get("confidence", "medium"),
             "reason":       item.get("reason", ""),
             "row_values":   self._normalize_row_values(
-                                item.get("target_sheet") or "ODB@AWS",
+                                self._resolve_sheet(item),
                                 item.get("row_values", {}), first_date),
             "source_excerpt": (item.get("source_excerpt") or "")[:1200],
         } for item in recommendations]
@@ -442,14 +525,15 @@ class UpdateRecommender:
             block_date = _format_date(self._extract_date(chunk))
             rows = [self._candidate("Enablement", self._summary_from_chunk(tc), "medium", "Heuristic enablement.", {
                 "On-Site Date":              _format_date(self._extract_date(tc)) or block_date,
-                "Requester":                 self._extract_name(tc) or self._extract_name(chunk),
+                "Requester":                 "",
                 "Follow Up Enablement Topics": self._summary_from_chunk(tc),
-                "Owner": "", "Status": "", "Scheduled Date": "",
+                "Owner":                     self._extract_name(tc) or self._extract_name(chunk),
+                "Status": "", "Scheduled Date": "",
                 "Business Units Invloved": "", "Internal SR#": sr, "Customer SR#": "",
             }, tc[:1200]) for tc in topic_chunks]
             return rows[0] if len(rows) == 1 else rows
 
-        sheet = "ODB@Azure" if "azure" in lower else "ODB@AWS"
+        sheet = "ODB@Azure" if self._extract_cloud_provider(chunk) == "Azure" else "ODB@AWS"
         return self._candidate(sheet, summary, "medium", f"Heuristic {sheet}.", {
             "Date":                    _format_date(self._extract_date(chunk)),
             "Issue":                   summary,

@@ -56,9 +56,7 @@
       color: var(--teal-deep);
     }
 
-    p {
-      line-height: 1.5;
-    }
+    p { line-height: 1.5; }
 
     .hero {
       display: grid;
@@ -97,24 +95,12 @@
       pointer-events: none;
     }
 
-    .hero-left h1 {
-      color: #f8f6f2;
-      font-size: 2.2rem;
-      margin-bottom: 14px;
-    }
-
+    .hero-left h1 { color: #f8f6f2; font-size: 2.2rem; margin-bottom: 14px; }
     .hero-left .subtle-line {
-      width: 68px;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.35);
-      margin-bottom: 18px;
+      width: 68px; height: 6px; border-radius: 999px;
+      background: rgba(255,255,255,0.35); margin-bottom: 18px;
     }
-
-    .hero-left p {
-      max-width: 92%;
-      color: rgba(255,255,255,0.92);
-    }
+    .hero-left p { max-width: 92%; color: rgba(255,255,255,0.92); }
 
     .hero-right {
       background: linear-gradient(180deg, #fbfaf7, #f4f0e9);
@@ -125,10 +111,8 @@
     .hero-right::before {
       content: "";
       position: absolute;
-      top: 20px;
-      right: 22px;
-      width: 150px;
-      height: 220px;
+      top: 20px; right: 22px;
+      width: 150px; height: 220px;
       opacity: 0.45;
       background:
         radial-gradient(ellipse at 20% 18%, var(--sage) 0 8%, transparent 9%),
@@ -143,55 +127,28 @@
       pointer-events: none;
     }
 
-    .hero-right h2 {
-      font-size: 1.65rem;
-      margin-bottom: 14px;
-      color: #111;
-    }
-
-    .hero-right p {
-      max-width: 68%;
-      color: #2d2d2d;
-    }
+    .hero-right h2 { font-size: 1.65rem; margin-bottom: 14px; color: #111; }
+    .hero-right p { max-width: 68%; color: #2d2d2d; }
 
     .underline {
-      margin-top: 20px;
-      width: 190px;
-      height: 4px;
-      border-radius: 999px;
-      background: var(--accent);
+      margin-top: 20px; width: 190px; height: 4px;
+      border-radius: 999px; background: var(--accent);
     }
 
-    .meta {
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
+    .meta { color: var(--muted); font-size: 0.95rem; }
 
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 14px 0 18px;
-    }
-
+    .pill-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 18px; }
     .pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: #efe9e0;
-      border: 1px solid #ddd2c4;
-      color: #4b4642;
-      font-size: 0.92rem;
+      display: inline-flex; align-items: center;
+      padding: 7px 12px; border-radius: 999px;
+      background: #efe9e0; border: 1px solid #ddd2c4;
+      color: #4b4642; font-size: 0.92rem;
     }
 
     .flash-error {
-      background: #fff1ef;
-      color: #8a2c2c;
+      background: #fff1ef; color: #8a2c2c;
       border: 1px solid #efc0ba;
-      padding: 12px 14px;
-      border-radius: 12px;
-      margin: 12px 0;
+      padding: 12px 14px; border-radius: 12px; margin: 12px 0;
     }
 
     .upload-panel {
@@ -202,202 +159,124 @@
     }
 
     .file-group label {
-      display: block;
-      font-size: 0.92rem;
-      color: var(--muted);
-      margin-bottom: 8px;
+      display: block; font-size: 0.92rem;
+      color: var(--muted); margin-bottom: 8px;
     }
 
     input[type="file"] {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fff;
-      color: var(--text);
+      width: 100%; padding: 12px;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: #fff; color: var(--text);
+    }
+
+    .file-count {
+      margin-top: 8px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      min-height: 20px;
     }
 
     .btn {
-      appearance: none;
-      border: 0;
+      appearance: none; border: 0;
       background: linear-gradient(135deg, var(--teal-deep), var(--accent));
-      color: #fff;
-      padding: 13px 18px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 0.96rem;
-      font-weight: 600;
+      color: #fff; padding: 13px 18px; border-radius: 12px;
+      cursor: pointer; font-size: 0.96rem; font-weight: 600;
       box-shadow: 0 8px 20px rgba(45, 127, 163, 0.18);
       transition: transform 0.15s ease, opacity 0.15s ease;
     }
-
     .btn:hover { transform: translateY(-1px); }
     .btn:disabled { opacity: 0.65; cursor: wait; }
 
     table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 10px;
-      overflow: hidden;
-      border-radius: 14px;
+      border-collapse: collapse; width: 100%;
+      margin-top: 10px; overflow: hidden; border-radius: 14px;
     }
-
     thead th {
-      text-align: left;
-      background: #ede6dc;
-      color: #4b433e;
-      font-weight: 700;
-      padding: 13px 14px;
-      border-bottom: 1px solid var(--line);
+      text-align: left; background: #ede6dc; color: #4b433e;
+      font-weight: 700; padding: 13px 14px; border-bottom: 1px solid var(--line);
     }
-
     tbody td {
-      padding: 13px 14px;
-      border-bottom: 1px solid #ece6df;
-      vertical-align: top;
-      background: rgba(255,255,255,0.75);
+      padding: 13px 14px; border-bottom: 1px solid #ece6df;
+      vertical-align: top; background: rgba(255,255,255,0.75);
     }
-
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
+    tbody tr:last-child td { border-bottom: none; }
 
     .grid-two {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 20px;
-      margin-top: 20px;
+      display: grid; grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px; margin-top: 20px;
     }
 
     .mini-card {
-      border-radius: 16px;
-      padding: 20px;
-      color: #fff;
-      min-height: 150px;
-      box-shadow: var(--shadow);
+      border-radius: 16px; padding: 20px; color: #fff;
+      min-height: 150px; box-shadow: var(--shadow);
     }
-
-    .mini-card h3 {
-      margin: 0 0 14px 0;
-      font-size: 1.1rem;
-    }
-
-    .mini-card p {
-      margin: 0 0 24px 0;
-      color: rgba(255,255,255,0.92);
-    }
-
+    .mini-card h3 { margin: 0 0 14px 0; font-size: 1.1rem; }
+    .mini-card p { margin: 0 0 24px 0; color: rgba(255,255,255,0.92); }
     .mini-link {
-      display: inline-block;
-      padding-bottom: 5px;
+      display: inline-block; padding-bottom: 5px;
       border-bottom: 3px solid rgba(255,255,255,0.7);
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
+      color: #fff; text-decoration: none; font-weight: 600;
     }
 
     .mc1 { background: linear-gradient(160deg, var(--sand), #bca56a); color: #1f1f1f; }
     .mc1 p, .mc1 .mini-link { color: #1f1f1f; border-bottom-color: var(--accent); }
-
     .mc2 { background: linear-gradient(160deg, var(--slate), #364551); }
     .mc3 { background: linear-gradient(160deg, var(--clay), #775844); }
 
     .overlay {
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background: rgba(37, 34, 31, 0.38);
       backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      z-index: 9999;
+      display: none; align-items: center;
+      justify-content: center; padding: 24px; z-index: 9999;
     }
-
-    .overlay.show {
-      display: flex;
-    }
+    .overlay.show { display: flex; }
 
     .overlay-card {
       width: min(680px, 100%);
       background: linear-gradient(180deg, #faf8f4, #f3eee6);
-      border: 1px solid #dfd6cc;
-      border-radius: 24px;
+      border: 1px solid #dfd6cc; border-radius: 24px;
       box-shadow: 0 18px 50px rgba(46, 42, 40, 0.2);
       padding: 26px 26px 22px;
     }
-
-    .overlay-title {
-      margin: 0 0 10px 0;
-      color: var(--taupe);
-      font-size: 1.6rem;
-    }
-
-    .overlay-text {
-      margin: 0 0 18px 0;
-      color: var(--muted);
-    }
+    .overlay-title { margin: 0 0 10px 0; color: var(--taupe); font-size: 1.6rem; }
+    .overlay-text { margin: 0 0 18px 0; color: var(--muted); }
 
     .progress-shell {
-      width: 100%;
-      height: 14px;
-      background: #e6dfd7;
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid #d8cec2;
+      width: 100%; height: 14px; background: #e6dfd7;
+      border-radius: 999px; overflow: hidden; border: 1px solid #d8cec2;
     }
-
     .progress-bar {
-      width: 35%;
-      height: 100%;
-      border-radius: 999px;
+      width: 35%; height: 100%; border-radius: 999px;
       background: linear-gradient(90deg, var(--sage), var(--accent), var(--sand));
       animation: slide 1.5s ease-in-out infinite;
     }
-
     @keyframes slide {
       0%   { transform: translateX(-110%); }
       100% { transform: translateX(320%); }
     }
 
     .status-list {
-      list-style: none;
-      padding: 0;
-      margin: 18px 0 0 0;
-      display: grid;
-      gap: 10px;
+      list-style: none; padding: 0; margin: 18px 0 0 0;
+      display: grid; gap: 10px;
     }
-
     .status-item {
-      padding: 11px 12px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.72);
-      border: 1px solid #e2d9cf;
-      color: #554f4a;
-      transition: all 0.25s ease;
+      padding: 11px 12px; border-radius: 12px;
+      background: rgba(255,255,255,0.72); border: 1px solid #e2d9cf;
+      color: #554f4a; transition: all 0.25s ease;
     }
-
     .status-item.active {
-      background: rgba(111,143,136,0.12);
-      border-color: rgba(111,143,136,0.45);
-      color: #29423d;
-      font-weight: 700;
+      background: rgba(111,143,136,0.12); border-color: rgba(111,143,136,0.45);
+      color: #29423d; font-weight: 700;
     }
-
     .status-item.done {
-      background: rgba(45,127,163,0.1);
-      border-color: rgba(45,127,163,0.28);
+      background: rgba(45,127,163,0.1); border-color: rgba(45,127,163,0.28);
       color: #23485b;
     }
 
     @media (max-width: 920px) {
-      .hero, .grid-two, .upload-panel {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-right p {
-        max-width: 100%;
-      }
+      .hero, .grid-two, .upload-panel { grid-template-columns: 1fr; }
+      .hero-right p { max-width: 100%; }
     }
   </style>
 </head>
@@ -408,7 +287,7 @@
         <h1>FMR Tracker Update Studio</h1>
         <div class="subtle-line"></div>
         <p>
-          Upload a PDF of email threads, extract and clean the text, store the resulting text in OCI Object Storage,
+          Upload one or more PDF email threads, extract and clean the text, store the resulting text in OCI Object Storage,
           generate GPT-5.4 recommendations, and selectively apply additions back into the Excel workbook.
         </p>
         <div class="pill-row">
@@ -429,10 +308,9 @@
     </section>
 
     <div class="card">
-      <h2>Upload and process email PDF</h2>
+      <h2>Upload and process files</h2>
       <p class="meta">
-        The app will parse the uploaded PDF, clean the extracted text, write the text artifact to object storage,
-        recommend workbook additions, and take you to a review page where you can decide which updates to apply.
+        Upload one or more PDF, Excel, or Word (.docx) files. All files are parsed, cleaned, and deduplicated before generating recommendations. Everything goes to the same review page where you decide which updates to apply.
       </p>
 
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -441,14 +319,15 @@
         {% endfor %}
       {% endwith %}
 
-      <form id="processForm" action="{{ url_for('process_pdf') }}" method="post" enctype="multipart/form-data">
+      <form id="processForm" action="{{ url_for('process_files') }}" method="post" enctype="multipart/form-data">
         <div class="upload-panel">
           <div class="file-group">
-            <label for="pdf_file">Choose PDF</label>
-            <input id="pdf_file" type="file" name="pdf_file" accept="application/pdf" required>
+            <label for="pdf_file">Choose PDF, Excel, or Word files (hold Cmd/Ctrl to select multiple)</label>
+            <input id="pdf_file" type="file" name="pdf_files" accept="application/pdf,.xlsx,.xls,.docx" multiple required>
+            <div class="file-count" id="fileCount"></div>
           </div>
           <div>
-            <button id="submitBtn" class="btn" type="submit">Process email PDF</button>
+            <button id="submitBtn" class="btn" type="submit">Process email PDFs</button>
           </div>
         </div>
       </form>
@@ -497,9 +376,9 @@
 
   <div id="processingOverlay" class="overlay" aria-hidden="true">
     <div class="overlay-card">
-      <h2 class="overlay-title">Processing your PDF</h2>
-      <p class="overlay-text">
-        Please wait while the application extracts the email text, cleans it, stores it, and prepares recommended workbook additions.
+      <h2 class="overlay-title">Processing your PDFs</h2>
+      <p class="overlay-text" id="overlayText">
+        Please wait while the application processes your files.
       </p>
 
       <div class="progress-shell">
@@ -507,7 +386,7 @@
       </div>
 
       <ul id="statusList" class="status-list">
-        <li class="status-item active">Uploading PDF</li>
+        <li class="status-item active">Uploading PDFs</li>
         <li class="status-item">Extracting text from pages</li>
         <li class="status-item">Cleaning email content</li>
         <li class="status-item">Saving cleaned text to object storage</li>
@@ -522,12 +401,26 @@
       const form = document.getElementById("processForm");
       const submitBtn = document.getElementById("submitBtn");
       const overlay = document.getElementById("processingOverlay");
+      const overlayText = document.getElementById("overlayText");
       const statusItems = Array.from(document.querySelectorAll(".status-item"));
+      const fileInput = document.getElementById("pdf_file");
+      const fileCount = document.getElementById("fileCount");
       let timer = null;
+
+      // Show selected file count
+      fileInput.addEventListener("change", function () {
+        const n = fileInput.files.length;
+        if (n === 0) {
+          fileCount.textContent = "";
+        } else if (n === 1) {
+          fileCount.textContent = "1 file selected: " + fileInput.files[0].name;
+        } else {
+          fileCount.textContent = n + " files selected";
+        }
+      });
 
       function advanceStatuses() {
         let currentIndex = 0;
-
         timer = setInterval(() => {
           if (currentIndex < statusItems.length - 1) {
             statusItems[currentIndex].classList.remove("active");
@@ -539,6 +432,11 @@
       }
 
       form.addEventListener("submit", function () {
+        const n = fileInput.files.length;
+        overlayText.textContent = n > 1
+          ? "Processing " + n + " PDF files — this may take a moment."
+          : "Please wait while the application extracts the email text, cleans it, stores it, and prepares recommended workbook additions.";
+
         overlay.classList.add("show");
         overlay.setAttribute("aria-hidden", "false");
         submitBtn.disabled = true;
@@ -547,9 +445,7 @@
       });
 
       window.addEventListener("pageshow", function () {
-        if (timer) {
-          clearInterval(timer);
-        }
+        if (timer) clearInterval(timer);
       });
     })();
   </script>

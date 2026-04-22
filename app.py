@@ -13,6 +13,7 @@ from services.update_recommender import UpdateRecommender
 from services.excel_processor import process_excel_file
 from services.docx_service import extract_text_from_docx
 from services.workbook_service import WorkbookService
+from services.roles_loader import load_roles_context
 
 
 def _norm(t):
@@ -88,10 +89,12 @@ def create_app() -> Flask:
 
     workbook_service = WorkbookService(app.config["WORKBOOK_PATH"])
     object_store     = ObjectStoreClient.from_config(app.config)
+    roles_context    = load_roles_context(app.config["ROLES_PATH"])
     recommender      = UpdateRecommender(
         model_name=app.config["OPENAI_MODEL"],
         enabled=app.config["OPENAI_RECOMMENDER_ENABLED"],
         api_key=app.config["OPENAI_API_KEY"],
+        roles_context=roles_context,
     )
 
     @app.get("/")
@@ -131,6 +134,7 @@ def create_app() -> Flask:
                         client=recommender.client,
                         model=app.config["OPENAI_MODEL"],
                         workbook_context=wb_context,
+                        roles_context=roles_context,
                     )
                     all_recommendations.extend(recs)
                     all_cleaned_texts.append(f"[Excel: {filename}]")
@@ -183,6 +187,7 @@ def create_app() -> Flask:
             text_store_uri=last_object_result["uri"],
             storage_mode=last_object_result["mode"],
             text_preview="\n\n---\n\n".join(all_cleaned_texts)[:8000],
+            workbook_stem=Path(app.config["WORKBOOK_PATH"]).stem,
         )
 
     @app.post("/apply")
@@ -196,6 +201,11 @@ def create_app() -> Flask:
         all_candidates = json.loads(candidate_path.read_text(encoding="utf-8"))
         selected_ids   = set(request.form.getlist("selected_updates"))
         selected       = [c for c in all_candidates if c["id"] in selected_ids]
+
+        for c in selected:
+            override = request.form.get(f"sheet_{c['id']}", "").strip()
+            if override:
+                c["target_sheet"] = override
 
         if not selected:
             flash("Select at least one recommendation to apply.", "error")

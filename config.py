@@ -21,6 +21,8 @@ class Config:
         str(BASE_DIR / "Fidelity FMR Technnical Session Tracker.xlsx"),
     )
 
+    ROLES_PATH = os.getenv("ROLES_PATH", str(BASE_DIR / "Roles.xlsx"))
+
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4")
     OPENAI_TIMEOUT_SECONDS = int(os.getenv("OPENAI_TIMEOUT_SECONDS", "120"))

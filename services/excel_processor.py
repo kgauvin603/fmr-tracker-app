@@ -23,13 +23,17 @@ ROUTING:
 - Question/clarification, no SR → Q&A
 - Session/workshop/training request → Enablement
 
+OWNER INFERENCE:
+- For each Enablement topic: if a name is listed next to it in the source, check it against the Oracle Team in roles_context. If it matches an Oracle team member → Owner. If it does NOT match → Requester. If no name is listed → Requester stays "", infer Owner from roles_context by topic.
+- For Q&A Responsibility Owner: if not stated, infer from roles_context — pick the most relevant Oracle team member by role.
+
 Map by semantic meaning. Preserve original text. Empty source = empty string.
 
 Return JSON: {"recommendations": [{"target_sheet": "...", "summary": "...", "confidence": "high|medium|low", "reason": "...", "row_values": {}, "source_excerpt": "..."}]}
 """.strip()
 
 
-def process_excel_file(file_path: str, client: OpenAI, model: str, workbook_context: Dict) -> List[Dict]:
+def process_excel_file(file_path: str, client: OpenAI, model: str, workbook_context: Dict, roles_context: str = "") -> List[Dict]:
     wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
     all_recommendations = []
 
@@ -60,15 +64,18 @@ def process_excel_file(file_path: str, client: OpenAI, model: str, workbook_cont
         for i in range(0, len(row_dicts), 20):
             batch = row_dicts[i:i + 20]
             try:
+                user_payload = {
+                    "source_sheet": sheet_name,
+                    "columns": headers,
+                    "rows": batch,
+                }
+                if roles_context:
+                    user_payload["roles_context"] = roles_context
                 response = client.chat.completions.create(
                     model=model,
                     messages=[
                         {"role": "system", "content": EXCEL_MAPPING_PROMPT},
-                        {"role": "user", "content": json.dumps({
-                            "source_sheet": sheet_name,
-                            "columns": headers,
-                            "rows": batch,
-                        }, default=str)},
+                        {"role": "user", "content": json.dumps(user_payload, default=str)},
                     ],
                     response_format={"type": "json_object"},
                 )
